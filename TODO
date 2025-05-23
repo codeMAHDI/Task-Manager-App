@@ -1,0 +1,117 @@
+1.What is FireBase?
+->Firebase is a Backend-as-a-Service (BaaS) platform provided by Google that helps
+developers build apps faster without managing servers or writing backend code.
+Key features->
+| Feature                            | Description                                              |
+| ---------------------------------- | -------------------------------------------------------- |
+| **Firebase Authentication**        | User sign-in/sign-up using email, Google, Facebook, etc. |
+| **Cloud Firestore**                | Real-time NoSQL database to store and sync data          |
+| **Firebase Realtime Database**     | Lightweight database that syncs data in real-time        |
+| **Firebase Storage**               | Upload and store images, files, etc.                     |
+| **Firebase Cloud Messaging (FCM)** | Send push notifications to Android, iOS, and web         |
+| **Firebase Hosting**               | Host static sites (HTML/CSS/JS) with SSL                 |
+| **Firebase Functions**             | Run backend logic using cloud functions (serverless)     |
+| **Firebase Analytics**             | Track user behavior and usage stats                      |
+| **Firebase Crashlytics**           | Real-time crash reporting and monitoring                 |
+2.Install packages.
+3.Initialize firebase in Flutter code
+4.Lets make task cubit for read and write firebase data
+class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
+  TaskCubit() : super([]);//Using super to call the  parent class Cubit constructor
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  void fetchItems() {
+    CollectionReference collection = firestore.collection('items')//From which collection i want fetch data;//To fetch data we need CollectionReference. And we've create an instance of it from firestore. Thats why after the initial constructor we create FirebaseFirestore instance.
+    collection.snapshots().listen((snapshot) {//collection.snapshots()->Start listening to real-time updates from this collection. Each snapshot is an update.
+      List<Map<String, dynamic>> items = [];// Store the snapshot here.
+      for (var doc in snapshot.docs) {// Using this loop we'll fill the list
+        items.add({'id': doc.id, ...doc.data() as Map<String, dynamic>});//...doc.data()->This is the spread operator: it unpacks all key-value pairs from the document’s data and inserts them into the map
+      }
+      emit(items);
+    });
+  }
+}
+5.Data fetch done. Now lets show the data on Home_page.
+call fetchItems cubit method on BlocProvider->
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => TaskCubit()..fetchItems(),
+      child: MaterialApp(
+        home: MyHomePage(),
+      ),
+    );
+  }
+  Then inside body we wrap it with BlocBuilder->
+   BlocBuilder<TaskCubit, List<Map<String,dynamic>>>(
+            builder: (context, items){//item=List<Map<String,dynamic>>>
+
+              return items.isEmpty?Center(child: Text('No Data Found'),): ListView.builder(
+                itemCount: items.length,
+                  itemBuilder: (context, index){
+                  var item= items[index];//To make ListTile we grab the each item index before
+                  return ListTile(
+                    title: Text(item['name']),//name key
+                  );
+                  }
+              );
+            }
+        ),
+6.Now lets add an icon on ListTile trailing (Edit & delete)
+So , we need to create data delete Cubit.
+     void deleteItem(String id)async{
+       await  firestore.collection('items').doc(id).delete();//From firestore got to collection then doc(id) that Targets the specific document with that ID
+     }
+     Now call this method in delete button onPressed->
+      context.read<TaskCubit>().deleteItem(item['id']);
+7.Now lets do task add and update process
+So lets make a dialog for that->
+After body take one floatingActionButton.
+Then create dialog box outside of build context->
+void MyDialog(BuildContext context, String?id, String initialName){//Dialog box create by BuildContext// Using this Dialog we'll create task and also update task. For update we need this->String?id
+    _controller.text=initialName;//If there is text in controller then it is = initialName when we want to update
+    showDialog(
+        context: context, builder: (context)=>AlertDialog(
+      title: Text(id==null?"Add Task":"Edit Task"),//If id==null then title will be "Add Task" else "Edit Task"
+      content: TextField(controller: _controller),
+      actions: [
+        TextButton(onPressed: (){
+        //When it is clicked we need a cubit add method
+        }, child: Text("Save"))
+      ],
+    )
+    );
+  }
+
+  Cubit add method->
+    void addItem(String name)async{
+      await firestore.collection('items').add({'name': name});
+    }
+    Then Textbutton onPressed call this method->
+    context.read<TaskCubit>().addItem(_controller.text);//_controller.text from this we'll get the task name
+    But lets make it more efficient. By adding validation here->
+       TextButton(
+                        onPressed: () {
+                          if (_controller.text.trim().isEmpty) return;//If the text we get from the controller after trim isEmpty then just return Empty. It means(If the input field is empty (or contains only spaces), then stop and do nothing.)
+                          final taskCubit = context.read<TaskCubit>();
+                          if (id == null) {//If id is null (i.e., there is no existing task to update), then add a new task using the text from the controller.
+                            taskCubit.addItem(_controller.text.trim());
+                          }
+                          Navigator.pop(context);
+                        },
+                        child: Text("Save"))
+  Now when we click on edit button we'll use the same popup(Dialog Box)
+  Just on edit button onPressed->
+  IconButton(onPressed: () {
+                            MyDialog(context, item['id'], item['name']);
+                          }, icon: Icon(Icons.edit)),
+  When saved click then we need updateTask cubit method->
+    void editItem(String id, String name)async{
+      await firestore.collection('items').doc(id).update({'name':name});//from firestore call collection and inside this collection we've a doc with an ID. By this doc(id) update name
+    }
+  Then inside MyDialog ->TextButton(Save)->After if->
+  else{taskCubit.editItem(id,_controller.text.trim());}
+
+
+
+
+
