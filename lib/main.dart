@@ -8,7 +8,6 @@ void main() async {
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
-
 class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
   TaskCubit() : super([]);
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
