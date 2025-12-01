@@ -10,7 +10,6 @@ void main() async {
 class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
   TaskCubit() : super([]);
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
   void fetchItems() {
     CollectionReference collection = firestore.collection('items');
     collection.snapshots().listen((snapshot) {
