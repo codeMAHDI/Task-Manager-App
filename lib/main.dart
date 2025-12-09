@@ -26,7 +26,6 @@ class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
   void addItem(String name) async {
     await firestore.collection('items').add({'name': name});
   }
-
   void editItem(String id, String name) async {
     await firestore.collection('items').doc(id).update({'name': name});
   }
