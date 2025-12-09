@@ -30,7 +30,6 @@ class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
     await firestore.collection('items').doc(id).update({'name': name});
   }
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
