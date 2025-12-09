@@ -32,7 +32,6 @@ class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
 }
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
