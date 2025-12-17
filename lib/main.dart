@@ -5,8 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
-}
+  runApp(const MyApp());}
 class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
   TaskCubit() : super([]);
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
