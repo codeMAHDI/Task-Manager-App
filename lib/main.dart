@@ -27,8 +27,7 @@ class TaskCubit extends Cubit<List<Map<String, dynamic>>> {
   }
   void editItem(String id, String name) async {
     await firestore.collection('items').doc(id).update({'name': name});
-  }
-}
+  }}
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
